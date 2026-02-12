@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore")
 
 
 #loading dataset
-df = pd.read_excel(r"C:\Users\aarat\Desktop\Bvoc IT\sem6\proj_s6\main\emscad_cleaned_excel.xlsx")
+df = pd.read_excel(r"C:\Users\aarat\Downloads\emscad_cleaned_excel_copy.xlsx")
 
 
 

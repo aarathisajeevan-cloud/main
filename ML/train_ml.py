@@ -25,7 +25,7 @@ def run_training_pipeline():
 
     # 4. Balance & Train
     X_train, y_train = smote_method(X_train, y_train)
-    model_wrapper = detectionmodel(model_type="random_forest")
+    model_wrapper = detectionmodel(model_type="mlp")
     model_wrapper.training(X_train, y_train)
 
     # 5. SAVE THE ASSETS (Crucial for the App)
