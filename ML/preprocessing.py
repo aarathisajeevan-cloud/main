@@ -4,9 +4,9 @@
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
-from nltk.stem import wordnet
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
+from nltk.corpus import wordnet
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
@@ -58,8 +58,10 @@ def text_join(df):
     df['text'] = df[cols].fillna("unknown").agg(" ".join,axis=1)
     return df
 
-df =  text_join(df)
-# print(df['text'].head(10))
+
+if __name__ == "__main__":
+    df =  text_join(df)
+    # print(df['text'].head(10))
 
 class textpreprocessor:
     def __init__(self):
@@ -93,25 +95,26 @@ class textpreprocessor:
 tp = textpreprocessor()#initialized preprocessor
 #print(df.columns)
 
-#FEATURE EXTRACTION/ENGNEERING
-from train_test import split_function
-X_train,X_test,y_train,y_test = split_function(df,text_cols="text",target_col="fraudulent")
+if __name__ == "__main__":
+    #FEATURE EXTRACTION/ENGNEERING
+    from train_test import split_function
+    X_train,X_test,y_train,y_test = split_function(df,text_cols="text",target_col="fraudulent")
 
-def tfidf_features(X_train,X_test,max_features=3000,ngram_range=(1,2)):
-    tfidf = TfidfVectorizer(max_features=max_features , ngram_range=ngram_range , stop_words='english')
-    X_train_tfidf = tfidf.fit_transform(X_train)
-    X_test_tfidf = tfidf.transform(X_test)
-    print(X_train_tfidf.shape)
-    print(X_test_tfidf.shape)
-
-    return X_train_tfidf,X_test_tfidf,tfidf
-
-#balancing the dataset using smote method
-
-def smote_method(X_train , y_train,random_state = 42):
-    smote = SMOTE(random_state=random_state) 
-    X_resampled,y_resampled = smote.fit_resample(X_train,y_train)
-    return X_resampled,y_resampled
+    def tfidf_features(X_train,X_test,max_features=3000,ngram_range=(1,2)):
+        tfidf = TfidfVectorizer(max_features=max_features , ngram_range=ngram_range , stop_words='english')
+        X_train_tfidf = tfidf.fit_transform(X_train)
+        X_test_tfidf = tfidf.transform(X_test)
+        print(X_train_tfidf.shape)
+        print(X_test_tfidf.shape)
+    
+        return X_train_tfidf,X_test_tfidf,tfidf
+    
+    #balancing the dataset using smote method
+    
+    def smote_method(X_train , y_train,random_state = 42):
+        smote = SMOTE(random_state=random_state) 
+        X_resampled,y_resampled = smote.fit_resample(X_train,y_train)
+        return X_resampled,y_resampled
 
 
 

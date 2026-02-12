@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import time
 import streamlit as st
 import requests
+from inference import predict_from_user
 
 
 # ---------- STEP 1: WEBSITE DETECTOR ----------
@@ -154,7 +155,7 @@ st.write("Paste a job post URL from Indeed, LinkedIn, or Naukri")
 
 job_url = st.text_input("Paste Job URL")
 
-if st.button("Scrape Job"):
+if st.button("CHECK"):
     if job_url.strip():
         with st.spinner("Scraping job details..."):
             title, company, description = job_scraper(job_url)
@@ -165,7 +166,27 @@ if st.button("Scrape Job"):
         st.subheader("Company Name")
         st.write(company)
 
-        st.subheader("Job Description")
-        st.write(description)
+
+
+        st.divider()
+        st.subheader("AI Authenticity Analysis")
+
+        if description != "Not found":
+            with st.spinner("Analyzing job description..."):
+                # Call the actual ML model
+                result = predict_from_user(description)
+            
+            if result["status"] == "FAKE":
+                st.error(f"🚨 Warning: This job post looks FAKE.")
+                st.info("Reasoning: The description contains patterns often associated with fraudulent job advertisements.")
+                
+                if result["words"]:
+                    st.warning(f"Suspicious words found: {', '.join(result['words'])}")
+            else:
+                st.success(f"✅ Verified: This job post looks REAL.")
+        else:
+            st.warning("Insufficient data to perform authenticity analysis.")
     else:
         st.warning("Please paste a valid job URL")
+
+

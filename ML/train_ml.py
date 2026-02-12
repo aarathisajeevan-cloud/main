@@ -12,7 +12,7 @@ from preprocessing import data_cleaning, text_join, textpreprocessor, tfidf_feat
 
 def run_training_pipeline():
     # 1. Load Dataset
-    df = pd.read_excel(r"C:\Users\aarat\Desktop\Bvoc IT\sem6\proj_s6\main\emscad_cleaned_excel.xlsx")
+    df = pd.read_excel(r"C:\Users\aarat\Downloads\emscad_cleaned_excel_copy.xlsx")
 
     # 2. Preprocessing
     df = data_cleaning(df)
