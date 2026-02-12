@@ -1,6 +1,6 @@
 # inference.py
 import joblib
-from preprocessing import textpreprocessor
+from ml_preprocessing import textpreprocessor
 
 from fake_words import fake_words
 

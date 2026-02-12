@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import time
 import streamlit as st
 import requests
-from inference import predict_from_user
+from ml_inference import predict_from_user
 
 
 # ---------- STEP 1: WEBSITE DETECTOR ----------
@@ -38,6 +38,7 @@ def job_scraper(url):
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     )
+
 
 
     driver = webdriver.Chrome(
@@ -103,7 +104,27 @@ def job_scraper(url):
             if desc_tag and len(desc_tag.get_text(strip=True)) > 50:
                 description = desc_tag.get_text(" ", strip=True)
                 break
-        # #Job title
+
+    # ---------- NAUKRI ----------
+    elif site == "naukri":
+           # Job Title
+        title_tag = soup.find("h1")
+        title = title_tag.get_text(strip=True) if title_tag else "Not found"
+
+        # Company Name (UPDATED)
+        company_tag = soup.select_one('div[class*="jd-header-comp-name"] a')
+        if company_tag:
+            company = company_tag.get_text(strip = True)
+
+        # Job Description
+        desc_tag = soup.select_one('div[class*="dang-inner-html"]')
+        if desc_tag:
+            description = desc_tag.get_text(" ", strip=True)
+        else:
+            description = "not found"
+    return title, company, description
+
+    # #Job title
         # title_tag = soup.select_one('div[class*="top-card"] strong')
         # title = title_tag.get_text(strip = True) if title_tag else "Not found"
 
@@ -126,67 +147,51 @@ def job_scraper(url):
         #     "a.topcard__org-name-link, span.topcard__flavor")
 
 
+def result_url():
+    st.subheader("URL Based Input")
+    st.write("Paste a job post URL from Indeed, LinkedIn, or Naukri")
 
-    # ---------- NAUKRI ----------
-    elif site == "naukri":
-           # Job Title
-        title_tag = soup.find("h1")
-        title = title_tag.get_text(strip=True) if title_tag else "Not found"
+    job_url = st.text_input("Paste Job URL")
 
-        # Company Name (UPDATED)
-        company_tag = soup.select_one('div[class*="jd-header-comp-name"] a')
-        if company_tag:
-            company = company_tag.get_text(strip = True)
+    result = None
+    if st.button("CHECK"):
+        if job_url.strip():
+            with st.spinner("Scraping job details..."):
+                try:
+                    title, company, description = job_scraper(job_url)
 
-        # Job Description
-        desc_tag = soup.select_one('div[class*="dang-inner-html"]')
-        if desc_tag:
-            description = desc_tag.get_text(" ", strip=True)
+                    st.subheader("Job Title")
+                    st.write(title)
+
+                    st.subheader("Company Name")
+                    st.write(company)
+
+
+                    st.divider()
+                    st.subheader("AI Authenticity Analysis")
+
+                    if description != "Not found":
+                        with st.spinner("Analyzing job description..."):
+                            # Call the actual ML model
+                            result = predict_from_user(description)
+                        
+                        if result["status"] == "FAKE":
+                            st.error(f"🚨 Warning: This job post looks FAKE.")
+                            st.info("Reasoning: The description contains patterns often associated with fraudulent job advertisements.")
+                            
+                            if result["words"]:
+                                st.warning(f"Suspicious words found: {', '.join(result['words'])}")
+                        else:
+                            st.success(f"✅ Verified: This job post looks REAL.")
+                    else:
+                        st.warning("Insufficient data to perform authenticity analysis.")
+                except Exception as e:
+                    st.error(f"An error occurred during scraping: {e}")
         else:
-            description = "not found"
-    return title, company, description
+            st.warning("Please paste a valid job URL")
 
+    return result
 
-# ---------- STEP 3: STREAMLIT UI ----------
-st.set_page_config(page_title="URL Entry ", layout="centered")
-
-st.title("URL Based Input")
-st.write("Paste a job post URL from Indeed, LinkedIn, or Naukri")
-
-job_url = st.text_input("Paste Job URL")
-
-if st.button("CHECK"):
-    if job_url.strip():
-        with st.spinner("Scraping job details..."):
-            title, company, description = job_scraper(job_url)
-
-        st.subheader("Job Title")
-        st.write(title)
-
-        st.subheader("Company Name")
-        st.write(company)
-
-
-
-        st.divider()
-        st.subheader("AI Authenticity Analysis")
-
-        if description != "Not found":
-            with st.spinner("Analyzing job description..."):
-                # Call the actual ML model
-                result = predict_from_user(description)
-            
-            if result["status"] == "FAKE":
-                st.error(f"🚨 Warning: This job post looks FAKE.")
-                st.info("Reasoning: The description contains patterns often associated with fraudulent job advertisements.")
-                
-                if result["words"]:
-                    st.warning(f"Suspicious words found: {', '.join(result['words'])}")
-            else:
-                st.success(f"✅ Verified: This job post looks REAL.")
-        else:
-            st.warning("Insufficient data to perform authenticity analysis.")
-    else:
-        st.warning("Please paste a valid job URL")
-
-
+if __name__ == "__main__":
+    st.set_page_config(page_title="URL Entry ", layout="centered")
+    result_url()
